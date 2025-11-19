@@ -40,9 +40,9 @@ jobs:
         retention-days: 30
 
   build:
-    name: Build Package
+    name: Build Package and Upload Source Code
     runs-on: ubuntu-latest
-    needs: test
+    needs: test  # ← Запустится только если test успешен
     
     steps:
     - name: Checkout code
@@ -68,11 +68,25 @@ jobs:
         name: python-package
         path: dist/
         retention-days: 30
+    
+    # ↓↓↓ НОВЫЙ ШАГ: Выгрузка исходного кода как артефакт ↓↓↓
+    - name: Upload source code as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: source-code
+        path: |
+          src/
+          test.py
+          requirements.txt
+          pytest.ini
+          setup.py
+          README.md
+        retention-days: 30
 
   deploy:
     name: Deploy Test Report
     runs-on: ubuntu-latest
-    needs: test
+    needs: test  # ← Запустится только если test успешен
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
